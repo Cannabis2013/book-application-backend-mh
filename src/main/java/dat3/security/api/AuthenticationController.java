@@ -57,11 +57,9 @@ public class AuthenticationController {
 
       UserWithRoles user = (UserWithRoles) authentication.getPrincipal();
       Instant now = Instant.now();
-      long expiry = tokenExpiration;
       String scope = authentication.getAuthorities().stream()
               .map(GrantedAuthority::getAuthority)
               .collect(joining(" "));
-
       JwtClaimsSet claims = JwtClaimsSet.builder()
               .issuer(tokenIssuer)  //Only this for simplicity
               .issuedAt(now)
@@ -71,8 +69,6 @@ public class AuthenticationController {
               .build();
       JwsHeader jwsHeader = JwsHeader.with(() -> "HS256").build();
       String token = encoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
-
-
       List<String> roles = user.getRoles().stream().map(role -> role.toString()).collect(Collectors.toList());
       return ResponseEntity.ok()
               .body(new LoginResponse(user.getUsername(), token, roles));
@@ -80,6 +76,5 @@ public class AuthenticationController {
     } catch (BadCredentialsException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, UserDetailsServiceImp.WRONG_USERNAME_OR_PASSWORD);
     }
-
   }
 }
